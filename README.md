@@ -1,24 +1,52 @@
-# OptiSelect - Smart Feature Selection (Group 1, Optimization)
+# OptiSelect AI — Group 1
 
-Streamlit dashboard comparing classifiers on ALL features vs SelectKBest / RFE subsets
-for Iris, Wine, Breast Cancer, Heart Disease (UCI Cleveland) and Wine Quality (UCI, quality >= 6 = good).
+A Streamlit web application for comparing all-feature classification baselines with selected feature subsets across five datasets.
 
-## Run
-```
-python -m venv .venv && .venv\Scripts\activate      # Windows  (Mac/Linux: source .venv/bin/activate)
+## Included datasets
+1. Iris — scikit-learn
+2. Wine — scikit-learn
+3. Breast Cancer Wisconsin — scikit-learn
+4. Heart Disease (UCI Cleveland) — loaded from UCI-compatible public data source
+5. Wine Quality (red + white) — loaded from the UCI Machine Learning Repository; classification target is `quality >= 6`
+
+The first three datasets are bundled with scikit-learn. Heart Disease and Wine Quality require an internet connection when first loaded.
+
+## Run locally
+Install Python 3.10 or newer, then in this folder:
+
+```bash
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 streamlit run app.py
 ```
-Heart Disease and Wine Quality download automatically from UCI on first use and are cached in `data/`.
-If you are offline, save these files in `data/` manually:
-- `processed.cleveland.data` (UCI heart-disease folder)
-- `winequality-red.csv`, `winequality-white.csv` (UCI wine-quality folder)
 
-## Files
-- `experiments.py` - loaders, Pipelines (imputer -> scaler -> selector -> model), CV + test evaluation
-- `plots.py` - the 5 mandatory figures + class distribution / correlation heatmap (PNGs saved to `results/`)
-- `app.py` - dashboard; `results/results_table.csv` is produced by the "All datasets table" tab
+Streamlit prints a local URL (usually http://localhost:8501). Open it in a browser.
 
-## Method notes
-random_state=42; stratified 80/20 split; imputation, scaling and selection are fitted on training data only;
-5-fold stratified CV on the training split picks/compares k; the test set is evaluated once per configuration.
+## Features
+- Three classifiers: Logistic Regression, Decision Tree, Random Forest
+- SelectKBest, RFE, and manual feature selection
+- Stratified train/test split and 5-fold stratified cross-validation
+- Imputation and feature selection are fitted inside training pipelines to reduce leakage
+- Baseline vs optimized accuracy, macro-F1, CV accuracy and runtime
+- Five required visualizations, class distribution, correlation heatmap, classification report
+- Dataset CSV and experiment comparison CSV downloads
+
+## Deployment (Streamlit Community Cloud)
+1. Create a GitHub repository and upload `app.py` and `requirements.txt`.
+2. Open https://share.streamlit.io/ and sign in.
+3. Choose the repository, branch, and `app.py` as the main file.
+4. Deploy. Keep the repository public if using the free deployment workflow.
+
+## Methodology notes
+- `random_state=42` is the default.
+- Heart Disease target: `num > 0` means disease; missing numeric values are median-imputed inside the model pipeline.
+- Wine Quality target: `quality >= 6` is the positive class; red and white wines are combined. The 11 physicochemical measurements are model inputs; `wine_type` is shown only as preview metadata.
+- The accuracy-vs-feature-count curve is based on cross-validation on the training split only.
+- Runtime includes cross-validation and final fitting, so it is an experiment runtime, not pure prediction latency.
+- The feature-score chart uses ANOVA F-scores computed on the training split only.
+- No mockup/example accuracies are hard-coded as experiment results.
